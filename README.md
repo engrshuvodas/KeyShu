@@ -33,7 +33,7 @@
   </li>
   <li>Download the repository</li>
   <li>Run the script:
-    <pre><code>python typebot.py</code></pre>
+    <pre><code>python Shuky.py</code></pre>
   </li>
   <li>Paste your text in the text box</li>
   <li>Adjust speed or click “Reset Timing”</li>
