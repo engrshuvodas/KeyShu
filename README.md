@@ -50,5 +50,5 @@
 <h2>📁 License</h2>
 <p>This project is licensed under the MIT License - free to use and modify.</p>
 
-<h2>🙌 Developed by Shuvo ❤️</h2>
+<h2>🙌 Developed by Engr Shuvo Das ❤️</h2>
 <p><a href="https://engrshuvodas.github.io/SHUVO-_portfolio/" target="_blank">🔗 Visit My Portfolio</a></p>
