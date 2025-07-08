@@ -1,54 +1,66 @@
-<h1>🤖 Shuky - Human-Like Typing Software</h1>
+<h1>🤖 Shuky - Advanced Human-Like Typing Bot</h1>
 
-<p><strong>Shuky</strong> is a simple, lightweight typing automation tool built with Python. It types out your given text or code line-by-line, just like a human, with customizable speed. Perfect for filling forms or writing where copy-paste is not allowed.</p>
+<p><strong>Shuky</strong> is an advanced typing automation tool that mimics human typing with realistic delays, random error simulation, and auto-correction. Designed for use in input fields where copy-paste is not allowed.</p>
 
 <h2>🚀 Features</h2>
 <ul>
-  <li>✍️ Human-like typing (character-by-character)</li>
-  <li>⏱️ Adjustable typing speed (10ms to 300ms)</li>
-  <li>↩️ Handles special keys like <code>Enter</code> and <code>Tab</code></li>
-  <li>🛑 Easily stop typing anytime</li>
-  <li>🖥️ Clean graphical interface (built with <code>tkinter</code>)</li>
+  <li>⏱️ Random character-by-character typing delay</li>
+  <li>✍️ Adds and auto-corrects human-like typing errors</li>
+  <li>🧠 Smart punctuation and line delay logic</li>
+  <li>🛑 Pause, resume, and stop controls</li>
+  <li>📊 Typing timer shows active typing duration only</li>
+  <li>🔁 Long pauses after every few lines (like humans!)</li>
+  <li>⚙️ Fully customizable timing parameters</li>
+  <li>✅ Reset to realistic defaults with one click</li>
+  <li>📎 Includes GUI built with Tkinter (user-friendly)</li>
 </ul>
 
 <h2>📦 Requirements</h2>
 <ul>
   <li>Python 3.x</li>
-  <li>Required packages:
+  <li>Modules:
     <ul>
       <li><code>pyautogui</code></li>
-      <li><code>tkinter</code> (usually pre-installed)</li>
+      <li><code>tkinter</code> (included by default)</li>
     </ul>
   </li>
 </ul>
 
-<h2>🔧 How to Run</h2>
+<h2>💻 How to Run</h2>
 <ol>
-  <li>Install Python from <a href="https://www.python.org/downloads/" target="_blank">python.org</a></li>
-  <li>Open terminal or command prompt and install required package:
+  <li>Install required package:
     <pre><code>pip install pyautogui</code></pre>
   </li>
-  <li>Download this project or clone the repository</li>
-  <li>Run the file using:
+  <li>Download the repository</li>
+  <li>Run the script:
     <pre><code>python typebot.py</code></pre>
   </li>
-  <li>Paste your text in the app</li>
-  <li>Set your typing speed</li>
-  <li>Click <strong>"Start Typing"</strong> and move your cursor to the input field within 5 seconds</li>
+  <li>Paste your text in the text box</li>
+  <li>Adjust speed or click “Reset Timing”</li>
+  <li>Click <strong>Start Typing</strong> and position your cursor where typing should begin</li>
 </ol>
 
-<h2>📌 Notes</h2>
+<h2>🛠️ Advanced Timing Controls</h2>
 <ul>
-  <li>Only works on Windows</li>
-  <li>Ensure the cursor is placed where typing should begin</li>
-  <li>You can stop the typing process anytime</li>
+  <li><strong>Character Delay:</strong> Min/Max delay per character</li>
+  <li><strong>Punctuation Delay:</strong> Extra pause on commas, dots, etc.</li>
+  <li><strong>Line Delay:</strong> Pause before each new line</li>
+  <li><strong>Long Pause:</strong> After every N lines</li>
+  <li><strong>Error Rate:</strong> Typing mistakes with optional auto-correct</li>
+  <li><strong>Initial Delay:</strong> Countdown before typing begins</li>
 </ul>
 
-<h2>📷 Screenshot</h2>
-<p><em>Coming soon...</em></p>
+<h2>🆕 What's New (v2.3)</h2>
+<ul>
+  <li>🔧 Auto-correction toggle for simulated typing mistakes</li>
+  <li>⏲️ Accurate typing timer (only counts active time)</li>
+  <li>⏸️ Improved Pause/Resume logic</li>
+  <li>🌐 Developer profile button (links to your site)</li>
+</ul>
 
-<h2>📁 License</h2>
-<p>This project is licensed under the MIT License - free to use and modify.</p>
-
-<h2>🙌 Developed by Engr Shuvo Das ❤️</h2>
+<h2>👨‍💻 Developer</h2>
+<p>Made with ❤️ by <strong>Engr Shuvo Das</strong></p>
 <p><a href="https://engrshuvodas.github.io/SHUVO-_portfolio/" target="_blank">🔗 Visit My Portfolio</a></p>
+
+<h2>📄 License</h2>
+<p>This project is licensed under the MIT License. Use freely, modify as needed.</p>
