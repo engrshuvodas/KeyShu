@@ -12,6 +12,7 @@ stop_flag = False
 pause_flag = False
 start_time = 0
 timer_running = False
+typing_active = False
 
 # Default timing parameters (in seconds)
 DEFAULT_PARAMS = {
@@ -24,10 +25,11 @@ DEFAULT_PARAMS = {
     'long_pause_every': 8,
     'long_pause_min': 8.0,
     'long_pause_max': 15.0,
-    'error_rate': 0,
+    'error_rate': 0,  # 0% chance of error by default
     'error_correction_min': 0.3,
     'error_correction_max': 0.6,
-    'initial_delay': 5.0
+    'initial_delay': 5.0,
+    'auto_correct': True  # Auto-correction available (but inactive at 0% error rate)
 }
 
 def open_portfolio():
@@ -37,14 +39,12 @@ def show_about():
     messagebox.showinfo(
         "About Shuky",
         "Shuky - Advanced Human-Like Typing Bot\n"
-        "Version: 2.2\n"
-        "Developed by: Engr Shuvo Das\n\n"
-        "Features:\n"
-        "- All timing in seconds\n"
-        "- Random non-rounded timing\n"
-        "- Pause/Resume function\n"
-        "- Reset timing button\n\n"
-        "© 2025 Shuvo Das - All Rights Reserved"
+        "Version: 2.3\n\n"
+        "New Features:\n"
+        "- Configurable auto-error correction\n"
+        "- Accurate typing timer (only counts active typing)\n"
+        "- Improved pause functionality\n\n"
+        "© 2025 Engr Shuvo Das - All Rights Reserved"
     )
 
 def reset_to_defaults():
@@ -65,6 +65,8 @@ def reset_to_defaults():
     timing_controls.error_min.insert(0, round(random.uniform(0.25, 0.35), 3))
     timing_controls.error_max.insert(0, round(random.uniform(0.55, 0.65), 3))
     timing_controls.initial_delay.insert(0, round(random.uniform(4.5, 5.5), 3))
+    timing_controls.error_rate.insert(0, 0)  # Default 0% error rate
+    timing_controls.auto_correct.set(True)  # Auto-correct remains enabled (but inactive at 0% error)
 
 def get_timing_params(controls):
     """Get current timing parameters from UI controls"""
@@ -76,23 +78,29 @@ def get_timing_params(controls):
         'long_pause_every': int(controls.long_freq.get()),
         'error_rate': int(controls.error_rate.get()),
         'error_correction': (float(controls.error_min.get()), float(controls.error_max.get())),
-        'initial_delay': float(controls.initial_delay.get())
+        'initial_delay': float(controls.initial_delay.get()),
+        'auto_correct': controls.auto_correct.get() == 1
     }
 
 def toggle_pause():
-    global pause_flag
+    global pause_flag, typing_active, timer_running
     pause_flag = not pause_flag
     if pause_flag:
         pause_btn.config(text="Resume", bg="#3498db")
         timer_label.config(fg="red")
+        typing_active = False
+        stop_timer()  # Stop timer when paused
     else:
         pause_btn.config(text="Pause", bg="#f39c12")
         timer_label.config(fg="blue")
+        typing_active = True
+        start_timer()  # Resume timer when unpaused
 
 def start_typing():
-    global stop_flag, pause_flag
+    global stop_flag, pause_flag, typing_active
     stop_flag = False
     pause_flag = False
+    typing_active = True
     text = input_text.get("1.0", tk.END).rstrip()
     params = get_timing_params(timing_controls)
     
@@ -103,11 +111,13 @@ def start_typing():
     start_btn.config(state="disabled")
     stop_btn.config(state="normal")
     pause_btn.config(state="normal", text="Pause", bg="#f39c12")
+    reset_btn.config(state="disabled")
     threading.Thread(target=type_text, args=(text, params)).start()
     start_timer()
 
 def type_text(text, params):
-    global stop_flag, pause_flag
+    global stop_flag, pause_flag, typing_active
+    
     lines = text.splitlines()
     
     # Convert times to seconds
@@ -115,6 +125,7 @@ def type_text(text, params):
     punct_extra = (params['punctuation_extra'][0], params['punctuation_extra'][1])
     line_delay = (params['line_delay'][0], params['line_delay'][1])
     long_pause = (params['long_pause'][0], params['long_pause'][1])
+    error_correction = (params['error_correction'][0], params['error_correction'][1])
     
     time.sleep(params['initial_delay'])
     line_count = 0
@@ -122,18 +133,46 @@ def type_text(text, params):
     for line in lines:
         if stop_flag: break
         
+        # Pause handling
+        while pause_flag and not stop_flag:
+            time.sleep(0.1)
+            continue
+            
+        typing_active = True
         time.sleep(random.uniform(*line_delay))
         
-        for char in line:
-            while pause_flag and not stop_flag:
-                time.sleep(0.1)
-                continue
-                
+        for i, char in enumerate(line):
             if stop_flag: break
             
+            # Pause handling
+            while pause_flag and not stop_flag:
+                typing_active = False
+                time.sleep(0.1)
+                continue
+            typing_active = True
+            
+            # Error simulation (only if error_rate > 0)
+            if (params['error_rate'] > 0 and
+                random.randint(1, 100) <= params['error_rate'] and 
+                i > 3 and 
+                char not in [' ', '\t'] and
+                params['auto_correct']):
+                
+                # Type wrong character
+                wrong_char = chr(ord(char) + random.randint(-2, 2))
+                pyautogui.write(wrong_char)
+                time.sleep(random.uniform(*error_correction))
+                
+                # Backspace and correct
+                pyautogui.press('backspace')
+                time.sleep(random.uniform(error_correction[0]/2, error_correction[1]/2))
+                pyautogui.write(char)
+            
+            # Type the character
             pyautogui.write(char)
             time.sleep(random.uniform(*char_delay))
             
+            # Punctuation delays
             if char in [".", "!", "?"]:
                 time.sleep(random.uniform(*punct_extra))
             elif char in [",", ";", ":"]:
@@ -147,36 +186,43 @@ def type_text(text, params):
             line_count += 1
             
             if line_count % params['long_pause_every'] == 0:
+                typing_active = False
                 time.sleep(random.uniform(*long_pause))
+                typing_active = True
+            elif line.strip() == "":
+                typing_active = False
+                time.sleep(random.uniform(line_delay[0]*1.5, line_delay[1]*1.5))
+                typing_active = True
 
-    stop_timer()
-    start_btn.config(state="normal")
-    stop_btn.config(state="disabled")
-    pause_btn.config(state="disabled")
+    stop_typing()
 
 def stop_typing():
-    global stop_flag
+    global stop_flag, typing_active
     stop_flag = True
+    typing_active = False
     stop_timer()
     start_btn.config(state="normal")
     stop_btn.config(state="disabled")
     pause_btn.config(state="disabled")
+    reset_btn.config(state="normal")
 
 def start_timer():
     global timer_running, start_time
-    timer_running = True
-    start_time = time.time()
-    threading.Thread(target=update_timer, daemon=True).start()
+    if not timer_running and typing_active:
+        timer_running = True
+        start_time = time.time()
+        threading.Thread(target=update_timer, daemon=True).start()
 
 def stop_timer():
     global timer_running
     timer_running = False
-    timer_label.config(text="Typing Time: 0 sec")
 
 def update_timer():
-    while timer_running:
-        elapsed = int(time.time() - start_time)
-        timer_label.config(text=f"Typing Time: {elapsed} sec")
+    global timer_running
+    while timer_running and not stop_flag:
+        if typing_active and not pause_flag:  # Only count when actively typing
+            elapsed = int(time.time() - start_time)
+            timer_label.config(text=f"Typing Time: {elapsed} sec")
         time.sleep(1)
 
 class TimingControls:
@@ -235,9 +281,10 @@ class TimingControls:
         # Error Settings
         tk.Label(self.frame, text="Error Rate:").grid(row=4, column=0, sticky="e")
         self.error_rate = tk.Entry(self.frame, width=3)
-        self.error_rate.insert(0, 0)
+        self.error_rate.insert(0, 0)  # Default 0% error rate
         self.error_rate.grid(row=4, column=1)
         tk.Label(self.frame, text="%").grid(row=4, column=2)
+        
         tk.Label(self.frame, text="Correction:").grid(row=4, column=3, sticky="e")
         self.error_min = tk.Entry(self.frame, width=6)
         self.error_min.insert(0, random_float(0.25, 0.35))
@@ -247,17 +294,22 @@ class TimingControls:
         self.error_max.insert(0, random_float(0.55, 0.65))
         self.error_max.grid(row=4, column=6)
         
+        # Auto-correct checkbox (stays enabled but inactive at 0% error rate)
+        self.auto_correct = tk.IntVar(value=1)
+        tk.Checkbutton(self.frame, text="Auto-correct errors", variable=self.auto_correct,
+                      bg=self.frame.cget('bg')).grid(row=5, column=0, columnspan=7, sticky="w")
+        
         # Initial delay
-        tk.Label(self.frame, text="Start Delay:").grid(row=5, column=0, sticky="e")
+        tk.Label(self.frame, text="Start Delay:").grid(row=6, column=0, sticky="e")
         self.initial_delay = tk.Entry(self.frame, width=6)
         self.initial_delay.insert(0, random_float(4.5, 5.5))
-        self.initial_delay.grid(row=5, column=1)
-        tk.Label(self.frame, text="seconds").grid(row=5, column=2)
+        self.initial_delay.grid(row=6, column=1)
+        tk.Label(self.frame, text="seconds").grid(row=6, column=2)
 
 # GUI setup
 root = tk.Tk()
 root.title("Shuky - Advanced Typing Assistant")
-root.geometry("800x750")
+root.geometry("850x800")
 root.resizable(False, False)
 
 # Custom colors
@@ -337,7 +389,7 @@ timer_label.pack()
 footer_frame = tk.Frame(root, bg=bg_color)
 footer_frame.pack(pady=(10, 5))
 
-dev_btn = tk.Button(footer_frame, text="Developed by Shuvo Das", font=("Arial", 9, "underline"), 
+dev_btn = tk.Button(footer_frame, text="Developed by Engr Shuvo Das", font=("Arial", 9, "underline"), 
                    fg=primary_color, bg=bg_color, bd=0, cursor="hand2", command=open_portfolio)
 dev_btn.pack()
 
